@@ -3,3 +3,4 @@
 .dict-levels button.active,.speed-row button.active{background:#f28c4b;border-color:#f28c4b;color:#fff}
 #next-dictation{margin-top:12px}#next-dictation:disabled{opacity:.5;cursor:not-allowed}
 .example-chips span[data-say],.spelling-table div[data-say]{cursor:pointer}
+#accent-grid article{cursor:pointer}

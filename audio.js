@@ -1,26 +1,27 @@
 (()=>{
-let current=null;
-function stop(){if(current){current.pause();current=null}if('speechSynthesis' in window)speechSynthesis.cancel()}
-function speak(text,rate){
-  if(!text||!('speechSynthesis' in window)){console.warn('No audio file and no speech synthesis for:',text);return}
+let current=null,token=0;
+function stop(){token++;if(current){current.pause();current=null}if('speechSynthesis' in window)speechSynthesis.cancel()}
+function speak(text,rate){return new Promise(res=>{
+  if(!text||!('speechSynthesis' in window)){console.warn('No audio for:',text);return res()}
   const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';u.rate=rate||.85;
   const v=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('fr'));if(v)u.voice=v;
-  speechSynthesis.speak(u)
-}
-// 先嘗試音檔；找不到就退回瀏覽器法語 TTS
-window.playFrench=(src,text,rate)=>{
-  stop();
-  let done=false;const fb=()=>{if(done)return;done=true;speak(text,rate)};
+  u.onend=u.onerror=()=>res();speechSynthesis.speak(u)})}
+// 先試音檔，失敗就用法語 TTS；播完才 resolve
+function one(src,text,rate){return new Promise(res=>{
+  let done=false;const fb=()=>{if(done)return;done=true;speak(text,rate).then(res)};
   if(!src)return fb();
   const a=new Audio(src);a.playbackRate=rate||1;current=a;
-  a.onerror=fb;a.play().catch(fb)
-};
+  a.onended=()=>{done=true;res()};a.onerror=fb;a.play().catch(fb)})}
+window.playSeq=async items=>{stop();const t=token;
+  for(const it of items){if(t!==token)return;await one(it.src,it.text,it.rate);if(t!==token)return;await new Promise(r=>setTimeout(r,350))}};
+window.playFrench=(src,text,rate)=>playSeq([{src,text,rate}]);
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-say]');if(!b)return;
-  const w=b.dataset.say;
-  playFrench(b.dataset.src||`assets/audio/words/${encodeURIComponent(w.toLowerCase())}.mp3`,w)
+  const w=b.dataset.say,items=[];
+  if(b.dataset.pre)items.push({src:b.dataset.preSrc,text:b.dataset.pre});
+  items.push({src:b.dataset.src||`assets/audio/words/${encodeURIComponent(w.toLowerCase())}.mp3`,text:w});
+  playSeq(items)
 });
-// 口型圖載入失敗時顯示缺少的檔名，方便除錯
 document.addEventListener('error',e=>{
   const i=e.target;
   if(i.tagName!=='IMG'||i.dataset.failed||!i.src.includes('mouth-diagrams'))return;
