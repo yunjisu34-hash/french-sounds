@@ -1,19 +1,19 @@
 (()=>{
 let current=null;
 function stop(){if(current){current.pause();current=null}if('speechSynthesis' in window)speechSynthesis.cancel()}
-function speak(text){
+function speak(text,rate){
   if(!text||!('speechSynthesis' in window)){console.warn('No audio file and no speech synthesis for:',text);return}
-  const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';u.rate=.85;
+  const u=new SpeechSynthesisUtterance(text);u.lang='fr-FR';u.rate=rate||.85;
   const v=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('fr'));if(v)u.voice=v;
   speechSynthesis.speak(u)
 }
 // 先嘗試音檔；找不到就退回瀏覽器法語 TTS
-window.playFrench=(src,text)=>{
+window.playFrench=(src,text,rate)=>{
   stop();
-  if(!src)return speak(text);
-  const a=new Audio(src);current=a;
-  a.onerror=()=>speak(text);
-  a.play().catch(()=>speak(text))
+  let done=false;const fb=()=>{if(done)return;done=true;speak(text,rate)};
+  if(!src)return fb();
+  const a=new Audio(src);a.playbackRate=rate||1;current=a;
+  a.onerror=fb;a.play().catch(fb)
 };
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-say]');if(!b)return;

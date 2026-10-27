@@ -1,0 +1,5 @@
+.dict-levels,.speed-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.dict-levels button,.speed-row button{border:1px solid #e3b8a0;background:#fff;color:inherit;padding:6px 16px;border-radius:999px;font:inherit;cursor:pointer}
+.dict-levels button.active,.speed-row button.active{background:#f28c4b;border-color:#f28c4b;color:#fff}
+#next-dictation{margin-top:12px}#next-dictation:disabled{opacity:.5;cursor:not-allowed}
+.example-chips span[data-say],.spelling-table div[data-say]{cursor:pointer}
